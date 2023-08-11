@@ -34,12 +34,47 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	nflog "github.com/florianl/go-nflog/v2"
 )
+
+func format(attrs nflog.Attribute) (msg string) {
+	if attrs.Prefix != nil {
+		msg = *(attrs.Prefix)
+	}
+	if attrs.InDev != nil {
+		intf, err := net.InterfaceByIndex(int(*attrs.InDev))
+		if err == nil {
+			msg = msg + " IN=" + intf.Name
+		} else {
+			msg = msg + " IN=<invalid>"
+		}
+	} else {
+		msg = msg + " IN="
+	}
+	if attrs.OutDev != nil {
+		intf, err := net.InterfaceByIndex(int(*attrs.OutDev))
+		if err == nil {
+			msg = msg + " OUT=" + intf.Name
+		} else {
+			msg = msg + " OUT=<invalid>"
+		}
+	} else {
+		msg = msg + " OUT="
+	}
+	// TODO: parse attrs.Payload and print:
+	//   SRC=     source IP address
+	//   DST=     destination IP address
+	//   PROTO=   protocl (udp, tcp, icmp, ...)
+	//   SPT=     source port
+	//   DPT=     destinaton port
+	//   LEN=     Length
+	return msg
+}
 
 func main() {
 	nflogGroup := flag.Uint("group", 0, "NFLOG Group ID to listen to")
@@ -67,12 +102,7 @@ func main() {
 	defer cancel()
 
 	hook := func(attrs nflog.Attribute) int {
-		msg := ""
-		if attrs.Prefix != nil {
-			msg = *(attrs.Prefix)
-		}
-		msg = msg + fmt.Sprintf("%v", attrs.Payload)
-		fmt.Fprintf(os.Stdout, "%s  %s\n", attrs.Timestamp.Format("2006-01-02 15:04:05"), msg)
+		fmt.Fprintf(os.Stdout, "%s  %s\n", attrs.Timestamp.Format("2006-01-02 15:04:05"), format(attrs))
 		return 0
 	}
 
