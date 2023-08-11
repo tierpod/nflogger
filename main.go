@@ -32,6 +32,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -41,28 +42,35 @@ import (
 )
 
 func main() {
-	// Send outgoing pings to nflog group 100
-	// # sudo iptables -I OUTPUT -p icmp -j NFLOG --nflog-group 100
+	// # nft add ip filter INPUT log prefix \"test: \" group 100
+	// # nft -a list chain filter INPUT   --> handle
+	// # nft delete rule filter INPUT handle <handle>
 
-	//Set configuration parameters
+	nflogGroup := flag.Uint("group", 0, "NFLOG Group ID to listen to")
+	flag.Parse()
+
+	if *nflogGroup > uint(^uint16(0)) {
+		fmt.Fprintf(os.Stderr, "invalid group id %d (must be between 0 and %d)\n", *nflogGroup, ^uint16(0))
+		os.Exit(1)
+	}
+
 	config := nflog.Config{
-		Group:    100,
+		Group:    uint16(*nflogGroup),
 		Copymode: nflog.CopyPacket,
 	}
 
 	nf, err := nflog.Open(&config)
 	if err != nil {
-		fmt.Println("could not open nflog socket:", err)
-		return
+		fmt.Fprintf(os.Stderr, "could not open nflog socket: %v\n", err)
+		os.Exit(2)
 	}
 	defer nf.Close()
+	fmt.Fprintf(os.Stderr, "listening to NFLOG Group %d\n", config.Group)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// hook that is called for every received packet by the nflog group
 	hook := func(attrs nflog.Attribute) int {
-		// Just print out the payload of the nflog packet
 		msg := ""
 		if attrs.Prefix != nil {
 			msg = *(attrs.Prefix)
@@ -72,21 +80,17 @@ func main() {
 		return 0
 	}
 
-	// errFunc that is called for every error on the registered hook
-	errFunc := func(e error) int {
-		// Just log the error and return 0 to continue receiving packets
-		fmt.Fprintf(os.Stderr, "received error on hook: %v\n", e)
+	errFunc := func(err error) int {
+		fmt.Fprintf(os.Stderr, "received error on hook: %v\n", err)
 		return 0
 	}
 
-	// Register your function to listen on nflog group 100
 	err = nf.RegisterWithErrorFunc(ctx, hook, errFunc)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to register hook function: %v\n", err)
-		return
+		os.Exit(2)
 	}
 
-	// Block till the context expires
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	<-sigs
