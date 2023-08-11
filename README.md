@@ -2,23 +2,26 @@
 
 *nflogger* is a simple tool to dump packets logged via the Linux firewall NFLOG target.
 
-Example rule and 
+Example usage:
 
 ```
 sudo nft add ip filter INPUT log prefix \"filter/INPUT: \" group 100
 sudo nflogger --group 100
 ```
 
-When you are done press CTRL-C to stopp nflogger and remove the rule again:
+When you are done press CTRL-C to stop nflogger and remove the rule again. To do this
+print all rules of the chain INPUT like so.
+
 
 ```
 sudo nft -a list chain filter INPUT
 ```
 
-This prints all rules of the chain INPUT including the handle id.
+The output from above contains the handle ids of all rules. Lookup the id of your rule
+and then delete it like so:
 
 ```
-sudo nft delete rule filter INPUT handle <handle>
+sudo nft delete rule filter INPUT handle <id>
 ```
 
 ## License
