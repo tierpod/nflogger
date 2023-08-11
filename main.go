@@ -42,10 +42,6 @@ import (
 )
 
 func main() {
-	// # nft add ip filter INPUT log prefix \"test: \" group 100
-	// # nft -a list chain filter INPUT   --> handle
-	// # nft delete rule filter INPUT handle <handle>
-
 	nflogGroup := flag.Uint("group", 0, "NFLOG Group ID to listen to")
 	flag.Parse()
 
