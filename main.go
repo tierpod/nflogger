@@ -40,7 +40,27 @@ import (
 	"syscall"
 
 	nflog "github.com/florianl/go-nflog/v2"
+	"golang.org/x/net/ipv4"
 )
+
+func formatIPv4(packet []byte) (msg string) {
+
+	header, err := ipv4.ParseHeader(packet)
+	if err != nil {
+		return " <invalid not IPv4??>"
+	}
+
+	msg = msg + fmt.Sprintf(" LEN=%d", header.TotalLen)
+	msg = msg + " SRC=" + header.Src.String()
+	msg = msg + " DST=" + header.Dst.String()
+
+	msg = msg + " PROTO=" + ipProtoToString(header.Protocol)
+	// TODO: parse:
+	//   SPT=     source port
+	//   DPT=     destinaton port
+
+	return msg
+}
 
 func format(attrs nflog.Attribute) (msg string) {
 	if attrs.Prefix != nil {
@@ -66,13 +86,23 @@ func format(attrs nflog.Attribute) (msg string) {
 	} else {
 		msg = msg + " OUT="
 	}
-	// TODO: parse attrs.Payload and print:
-	//   SRC=     source IP address
-	//   DST=     destination IP address
-	//   PROTO=   protocl (udp, tcp, icmp, ...)
-	//   SPT=     source port
-	//   DPT=     destinaton port
-	//   LEN=     Length
+
+	if attrs.HwType != nil {
+		msg = msg + " HWTYPE=" + hwTypeToString(*attrs.HwType)
+		if attrs.HwProtocol != nil {
+			msg = msg + " HWPROTO=" + hwProtocolToString(*attrs.HwType, *attrs.HwProtocol)
+		} else {
+			msg = msg + " HWPROTO="
+		}
+	} else {
+		msg = msg + " HWTYPE="
+	}
+
+	if attrs.Payload != nil {
+		// TODO: for now we assume IPv4
+		msg = msg + formatIPv4(*attrs.Payload)
+	}
+
 	return msg
 }
 
