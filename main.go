@@ -37,12 +37,10 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 
 	nflog "github.com/florianl/go-nflog/v2"
-	"golang.org/x/net/ipv4"
 )
 
 type Property struct {
@@ -51,22 +49,6 @@ type Property struct {
 }
 
 type Dissector func(data []byte) ([]Property, Dissector, []byte)
-
-func dissectIPv4(packet []byte) ([]Property, Dissector, []byte) {
-	header, err := ipv4.ParseHeader(packet)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to parse IPv4 header: %v\n", err)
-		return nil, nil, packet
-	}
-
-	var props []Property
-	props = append(props, Property{"ipv4/length", strconv.Itoa(header.TotalLen)})
-	props = append(props, Property{"ipv4/src", header.Src.String()})
-	props = append(props, Property{"ipv4/dst", header.Dst.String()})
-	proto, next := lookupIPProto(header.Protocol)
-	props = append(props, Property{"ipv4/protocol", proto})
-	return props, next, packet[ipv4.HeaderLen:]
-}
 
 func dissectHardware(attrs nflog.Attribute) ([]Property, Dissector, []byte) {
 	var body []byte

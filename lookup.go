@@ -275,7 +275,7 @@ func lookupEtherType(ethertype uint16) (string, Dissector) {
 	case unix.ETH_P_IP:
 		return "IP", dissectIPv4
 	case unix.ETH_P_IPV6:
-		return "IPV6", nil
+		return "IPV6", dissectIPv6
 	case unix.ETH_P_IPX:
 		return "IPX", nil
 	case unix.ETH_P_IRDA:
@@ -407,19 +407,19 @@ func lookupIPProto(ipproto int) (string, Dissector) {
 	case unix.IPPROTO_GRE:
 		return "GRE", nil
 	case unix.IPPROTO_ICMP:
-		return "ICMP", nil
+		return "ICMP", dissectICMP
 	case unix.IPPROTO_ICMPV6:
-		return "ICMPV6", nil
+		return "ICMPV6", dissectICMPv6
 	case unix.IPPROTO_IDP:
 		return "IDP", nil
 	case unix.IPPROTO_IGMP:
 		return "IGMP", nil
 	case unix.IPPROTO_IP:
-		return "IP", nil
+		return "IP", dissectIPv4
 	case unix.IPPROTO_IPIP:
-		return "IPIP", nil
+		return "IPIP", dissectIPv4
 	case unix.IPPROTO_IPV6:
-		return "IPV6", nil
+		return "IPV6", dissectIPv6
 	case unix.IPPROTO_L2TP:
 		return "L2TP", nil
 	case unix.IPPROTO_MH:
