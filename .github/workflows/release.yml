@@ -17,6 +17,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
+        pre_command: export CGO_ENABLED=0
         extra_files: AUTHORS LICENSE README.md
         md5sum: false
         sha256sum: true
