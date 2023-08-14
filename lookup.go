@@ -174,211 +174,284 @@ func hwTypeToString(hwtype uint16) string {
 	return fmt.Sprintf("<hwtype=0x%04X>", hwtype)
 }
 
-func etherTypeToString(ethertype uint16) string {
-
+func lookupEtherType(ethertype uint16) (string, Dissector) {
 	switch ethertype {
 	case unix.ETH_P_1588:
-		return "1588"
+		return "1588", nil
 	case unix.ETH_P_8021AD:
-		return "8021AD"
+		return "8021AD", nil
 	case unix.ETH_P_8021AH:
-		return "8021AH"
+		return "8021AH", nil
 	case unix.ETH_P_8021Q:
-		return "8021Q"
+		return "8021Q", nil
 	case unix.ETH_P_80221:
-		return "80221"
+		return "80221", nil
 	case unix.ETH_P_802_2:
-		return "802_2"
+		return "802_2", nil
 	case unix.ETH_P_802_3:
-		return "802_3"
+		return "802_3", nil
 	case unix.ETH_P_802_3_MIN:
-		return "802_3_MIN"
+		return "802_3_MIN", nil
 	case unix.ETH_P_802_EX1:
-		return "802_EX1"
+		return "802_EX1", nil
 	case unix.ETH_P_AARP:
-		return "AARP"
+		return "AARP", nil
 	case unix.ETH_P_AF_IUCV:
-		return "AF_IUCV"
+		return "AF_IUCV", nil
 	case unix.ETH_P_ALL:
-		return "ALL"
+		return "ALL", nil
 	case unix.ETH_P_AOE:
-		return "AOE"
+		return "AOE", nil
 	case unix.ETH_P_ARCNET:
-		return "ARCNET"
+		return "ARCNET", nil
 	case unix.ETH_P_ARP:
-		return "ARP"
+		return "ARP", nil
 	case unix.ETH_P_ATALK:
-		return "ATALK"
+		return "ATALK", nil
 	case unix.ETH_P_ATMFATE:
-		return "ATMFATE"
+		return "ATMFATE", nil
 	case unix.ETH_P_ATMMPOA:
-		return "ATMMPOA"
+		return "ATMMPOA", nil
 	case unix.ETH_P_AX25:
-		return "AX25"
+		return "AX25", nil
 	case unix.ETH_P_BATMAN:
-		return "BATMAN"
+		return "BATMAN", nil
 	case unix.ETH_P_BPQ:
-		return "BPQ"
+		return "BPQ", nil
 	case unix.ETH_P_CAIF:
-		return "CAIF"
+		return "CAIF", nil
 	case unix.ETH_P_CAN:
-		return "CAN"
+		return "CAN", nil
 	case unix.ETH_P_CANFD:
-		return "CANFD"
+		return "CANFD", nil
 	case unix.ETH_P_CFM:
-		return "CFM"
+		return "CFM", nil
 	case unix.ETH_P_CONTROL:
-		return "CONTROL"
+		return "CONTROL", nil
 	case unix.ETH_P_CUST:
-		return "CUST"
+		return "CUST", nil
 	case unix.ETH_P_DDCMP:
-		return "DDCMP"
+		return "DDCMP", nil
 	case unix.ETH_P_DEC:
-		return "DEC"
+		return "DEC", nil
 	case unix.ETH_P_DIAG:
-		return "DIAG"
+		return "DIAG", nil
 	case unix.ETH_P_DNA_DL:
-		return "DNA_DL"
+		return "DNA_DL", nil
 	case unix.ETH_P_DNA_RC:
-		return "DNA_RC"
+		return "DNA_RC", nil
 	case unix.ETH_P_DNA_RT:
-		return "DNA_RT"
+		return "DNA_RT", nil
 	case unix.ETH_P_DSA:
-		return "DSA"
+		return "DSA", nil
 	case unix.ETH_P_DSA_8021Q:
-		return "DSA_8021Q"
+		return "DSA_8021Q", nil
 	case unix.ETH_P_ECONET:
-		return "ECONET"
+		return "ECONET", nil
 	case unix.ETH_P_EDSA:
-		return "EDSA"
+		return "EDSA", nil
 	case unix.ETH_P_ERSPAN:
-		return "ERSPAN"
+		return "ERSPAN", nil
 	case unix.ETH_P_ERSPAN2:
-		return "ERSPAN2"
+		return "ERSPAN2", nil
 	case unix.ETH_P_FCOE:
-		return "FCOE"
+		return "FCOE", nil
 	case unix.ETH_P_FIP:
-		return "FIP"
+		return "FIP", nil
 	case unix.ETH_P_HDLC:
-		return "HDLC"
+		return "HDLC", nil
 	case unix.ETH_P_HSR:
-		return "HSR"
+		return "HSR", nil
 	case unix.ETH_P_IBOE:
-		return "IBOE"
+		return "IBOE", nil
 	case unix.ETH_P_IEEE802154:
-		return "IEEE802154"
+		return "IEEE802154", nil
 	case unix.ETH_P_IEEEPUP:
-		return "IEEEPUP"
+		return "IEEEPUP", nil
 	case unix.ETH_P_IEEEPUPAT:
-		return "IEEEPUPAT"
+		return "IEEEPUPAT", nil
 	case unix.ETH_P_IFE:
-		return "IFE"
+		return "IFE", nil
 	case unix.ETH_P_IP:
-		return "IP"
+		return "IP", dissectIPv4
 	case unix.ETH_P_IPV6:
-		return "IPV6"
+		return "IPV6", nil
 	case unix.ETH_P_IPX:
-		return "IPX"
+		return "IPX", nil
 	case unix.ETH_P_IRDA:
-		return "IRDA"
+		return "IRDA", nil
 	case unix.ETH_P_LAT:
-		return "LAT"
+		return "LAT", nil
 	case unix.ETH_P_LINK_CTL:
-		return "LINK_CTL"
+		return "LINK_CTL", nil
 	case unix.ETH_P_LLDP:
-		return "LLDP"
+		return "LLDP", nil
 	case unix.ETH_P_LOCALTALK:
-		return "LOCALTALK"
+		return "LOCALTALK", nil
 	case unix.ETH_P_LOOP:
-		return "LOOP"
+		return "LOOP", nil
 	case unix.ETH_P_LOOPBACK:
-		return "LOOPBACK"
+		return "LOOPBACK", nil
 	case unix.ETH_P_MACSEC:
-		return "MACSEC"
+		return "MACSEC", nil
 	case unix.ETH_P_MAP:
-		return "MAP"
+		return "MAP", nil
 	case unix.ETH_P_MOBITEX:
-		return "MOBITEX"
+		return "MOBITEX", nil
 	case unix.ETH_P_MPLS_MC:
-		return "MPLS_MC"
+		return "MPLS_MC", nil
 	case unix.ETH_P_MPLS_UC:
-		return "MPLS_UC"
+		return "MPLS_UC", nil
 	case unix.ETH_P_MRP:
-		return "MRP"
+		return "MRP", nil
 	case unix.ETH_P_MVRP:
-		return "MVRP"
+		return "MVRP", nil
 	case unix.ETH_P_NCSI:
-		return "NCSI"
+		return "NCSI", nil
 	case unix.ETH_P_NSH:
-		return "NSH"
+		return "NSH", nil
 	case unix.ETH_P_PAE:
-		return "PAE"
+		return "PAE", nil
 	case unix.ETH_P_PAUSE:
-		return "PAUSE"
+		return "PAUSE", nil
 	case unix.ETH_P_PHONET:
-		return "PHONET"
+		return "PHONET", nil
 	case unix.ETH_P_PPPTALK:
-		return "PPPTALK"
+		return "PPPTALK", nil
 	case unix.ETH_P_PPP_DISC:
-		return "PPP_DISC"
+		return "PPP_DISC", nil
 	case unix.ETH_P_PPP_MP:
-		return "PPP_MP"
+		return "PPP_MP", nil
 	case unix.ETH_P_PPP_SES:
-		return "PPP_SES"
+		return "PPP_SES", nil
 	case unix.ETH_P_PREAUTH:
-		return "PREAUTH"
+		return "PREAUTH", nil
 	case unix.ETH_P_PRP:
-		return "PRP"
+		return "PRP", nil
 	case unix.ETH_P_PUP:
-		return "PUP"
+		return "PUP", nil
 	case unix.ETH_P_PUPAT:
-		return "PUPAT"
+		return "PUPAT", nil
 	case unix.ETH_P_QINQ1:
-		return "QINQ1"
+		return "QINQ1", nil
 	case unix.ETH_P_QINQ2:
-		return "QINQ2"
+		return "QINQ2", nil
 	case unix.ETH_P_QINQ3:
-		return "QINQ3"
+		return "QINQ3", nil
 	case unix.ETH_P_RARP:
-		return "RARP"
+		return "RARP", nil
 	case unix.ETH_P_SCA:
-		return "SCA"
+		return "SCA", nil
 	case unix.ETH_P_SLOW:
-		return "SLOW"
+		return "SLOW", nil
 	case unix.ETH_P_SNAP:
-		return "SNAP"
+		return "SNAP", nil
 	case unix.ETH_P_TDLS:
-		return "TDLS"
+		return "TDLS", nil
 	case unix.ETH_P_TEB:
-		return "TEB"
+		return "TEB", nil
 	case unix.ETH_P_TIPC:
-		return "TIPC"
+		return "TIPC", nil
 	case unix.ETH_P_TRAILER:
-		return "TRAILER"
+		return "TRAILER", nil
 	case unix.ETH_P_TR_802_2:
-		return "TR_802_2"
+		return "TR_802_2", nil
 	case unix.ETH_P_TSN:
-		return "TSN"
+		return "TSN", nil
 	case unix.ETH_P_WAN_PPP:
-		return "WAN_PPP"
+		return "WAN_PPP", nil
 	case unix.ETH_P_WCCP:
-		return "WCCP"
+		return "WCCP", nil
 	case unix.ETH_P_X25:
-		return "X25"
+		return "X25", nil
 	case unix.ETH_P_XDSA:
-		return "XDSA"
+		return "XDSA", nil
 	}
-	return fmt.Sprintf("<ether-type=0x%04X>", ethertype)
+	return fmt.Sprintf("<ether-type=0x%04X>", ethertype), nil
 }
 
-func hwProtocolToString(hwtype uint16, hwprotocol uint16) string {
+func lookupHWProtocol(hwtype uint16, hwprotocol uint16) (string, Dissector) {
 	switch hwtype {
 	case unix.ARPHRD_ETHER:
 
 		fallthrough
 	case unix.ARPHRD_LOOPBACK:
 
-		return etherTypeToString(hwprotocol)
+		return lookupEtherType(hwprotocol)
 	}
-	return fmt.Sprintf("<hwprotocol=0x%04X>", hwprotocol)
+	return fmt.Sprintf("<hwprotocol=0x%04X>", hwprotocol), nil
+}
+
+func lookupIPProto(ipproto int) (string, Dissector) {
+	switch ipproto {
+	case unix.IPPROTO_AH:
+		return "AH", nil
+	case unix.IPPROTO_BEETPH:
+		return "BEETPH", nil
+	case unix.IPPROTO_COMP:
+		return "COMP", nil
+	case unix.IPPROTO_DCCP:
+		return "DCCP", nil
+	case unix.IPPROTO_DSTOPTS:
+		return "DSTOPTS", nil
+	case unix.IPPROTO_EGP:
+		return "EGP", nil
+	case unix.IPPROTO_ENCAP:
+		return "ENCAP", nil
+	case unix.IPPROTO_ESP:
+		return "ESP", nil
+	case unix.IPPROTO_ETHERNET:
+		return "ETHERNET", nil
+	case unix.IPPROTO_FRAGMENT:
+		return "FRAGMENT", nil
+	case unix.IPPROTO_GRE:
+		return "GRE", nil
+	case unix.IPPROTO_ICMP:
+		return "ICMP", nil
+	case unix.IPPROTO_ICMPV6:
+		return "ICMPV6", nil
+	case unix.IPPROTO_IDP:
+		return "IDP", nil
+	case unix.IPPROTO_IGMP:
+		return "IGMP", nil
+	case unix.IPPROTO_IP:
+		return "IP", nil
+	case unix.IPPROTO_IPIP:
+		return "IPIP", nil
+	case unix.IPPROTO_IPV6:
+		return "IPV6", nil
+	case unix.IPPROTO_L2TP:
+		return "L2TP", nil
+	case unix.IPPROTO_MH:
+		return "MH", nil
+	case unix.IPPROTO_MPLS:
+		return "MPLS", nil
+	case unix.IPPROTO_MPTCP:
+		return "MPTCP", nil
+	case unix.IPPROTO_MTP:
+		return "MTP", nil
+	case unix.IPPROTO_NONE:
+		return "NONE", nil
+	case unix.IPPROTO_PIM:
+		return "PIM", nil
+	case unix.IPPROTO_PUP:
+		return "PUP", nil
+	case unix.IPPROTO_RAW:
+		return "RAW", nil
+	case unix.IPPROTO_ROUTING:
+		return "ROUTING", nil
+	case unix.IPPROTO_RSVP:
+		return "RSVP", nil
+	case unix.IPPROTO_SCTP:
+		return "SCTP", nil
+	case unix.IPPROTO_TCP:
+		return "TCP", nil
+	case unix.IPPROTO_TP:
+		return "TP", nil
+	case unix.IPPROTO_UDP:
+		return "UDP", nil
+	case unix.IPPROTO_UDPLITE:
+		return "UDPLITE", nil
+	}
+	return fmt.Sprintf("<ipproto=0x%02X>", ipproto), nil
 }

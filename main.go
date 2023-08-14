@@ -37,73 +37,93 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	nflog "github.com/florianl/go-nflog/v2"
 	"golang.org/x/net/ipv4"
 )
 
-func formatIPv4(packet []byte) (msg string) {
-
-	header, err := ipv4.ParseHeader(packet)
-	if err != nil {
-		return " <invalid not IPv4??>"
-	}
-
-	msg = msg + fmt.Sprintf(" LEN=%d", header.TotalLen)
-	msg = msg + " SRC=" + header.Src.String()
-	msg = msg + " DST=" + header.Dst.String()
-
-	msg = msg + " PROTO=" + ipProtoToString(header.Protocol)
-	// TODO: parse:
-	//   SPT=     source port
-	//   DPT=     destinaton port
-
-	return msg
+type Property struct {
+	Name  string
+	Value string
 }
 
-func format(attrs nflog.Attribute) (msg string) {
-	if attrs.Prefix != nil {
-		msg = *(attrs.Prefix)
-	}
-	if attrs.InDev != nil {
-		intf, err := net.InterfaceByIndex(int(*attrs.InDev))
-		if err == nil {
-			msg = msg + " IN=" + intf.Name
-		} else {
-			msg = msg + " IN=<invalid>"
-		}
-	} else {
-		msg = msg + " IN="
-	}
-	if attrs.OutDev != nil {
-		intf, err := net.InterfaceByIndex(int(*attrs.OutDev))
-		if err == nil {
-			msg = msg + " OUT=" + intf.Name
-		} else {
-			msg = msg + " OUT=<invalid>"
-		}
-	} else {
-		msg = msg + " OUT="
+type Dissector func(data []byte) ([]Property, Dissector, []byte)
+
+func dissectIPv4(packet []byte) ([]Property, Dissector, []byte) {
+	header, err := ipv4.ParseHeader(packet)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unable to parse IPv4 header: %v\n", err)
+		return nil, nil, packet
 	}
 
-	if attrs.HwType != nil {
-		msg = msg + " HWTYPE=" + hwTypeToString(*attrs.HwType)
-		if attrs.HwProtocol != nil {
-			msg = msg + " HWPROTO=" + hwProtocolToString(*attrs.HwType, *attrs.HwProtocol)
-		} else {
-			msg = msg + " HWPROTO="
-		}
-	} else {
-		msg = msg + " HWTYPE="
-	}
+	var props []Property
+	props = append(props, Property{"ipv4/length", strconv.Itoa(header.TotalLen)})
+	props = append(props, Property{"ipv4/src", header.Src.String()})
+	props = append(props, Property{"ipv4/dst", header.Dst.String()})
+	proto, next := lookupIPProto(header.Protocol)
+	props = append(props, Property{"ipv4/protocol", proto})
+	return props, next, packet[ipv4.HeaderLen:]
+}
 
+func dissectHardware(attrs nflog.Attribute) ([]Property, Dissector, []byte) {
+	var body []byte
 	if attrs.Payload != nil {
-		// TODO: for now we assume IPv4
-		msg = msg + formatIPv4(*attrs.Payload)
+		body = *attrs.Payload
 	}
 
-	return msg
+	if attrs.HwType == nil {
+		return []Property{Property{"l2/type", "<unset>"}}, nil, body
+	}
+	var props []Property
+	props = append(props, Property{"l2/type", hwTypeToString(*attrs.HwType)})
+	if attrs.HwProtocol == nil {
+		props = append(props, Property{"l2/protocol", "<unset>"})
+		return props, nil, body
+	}
+	proto, next := lookupHWProtocol(*attrs.HwType, *attrs.HwProtocol)
+	props = append(props, Property{"l2/protocol", proto})
+	return props, next, body
+}
+
+func getInterfaceName(index *uint32) string {
+	if index == nil {
+		return "<unset>"
+	}
+	iface, err := net.InterfaceByIndex(int(*index))
+	if err != nil {
+		return "<invalid>"
+	}
+	return iface.Name
+}
+
+func format(attrs nflog.Attribute) string {
+
+	var props []Property
+	props = append(props, Property{"device/in", getInterfaceName(attrs.InDev)})
+	props = append(props, Property{"device/out", getInterfaceName(attrs.OutDev)})
+
+	hwprops, next, body := dissectHardware(attrs)
+	props = append(props, hwprops...)
+	for next != nil {
+		var tmp []Property
+		tmp, next, body = next(body)
+		props = append(props, tmp...)
+	}
+
+	var msg strings.Builder
+	if attrs.Prefix != nil {
+		msg.WriteString(*(attrs.Prefix))
+	}
+	for i, prop := range props {
+		if i != 0 {
+			msg.WriteRune(' ')
+		}
+		fmt.Fprintf(&msg, "%s=%s", prop.Name, prop.Value)
+	}
+	return msg.String()
 }
 
 func main() {
