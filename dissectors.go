@@ -38,6 +38,7 @@ import (
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
+	tcpip "gvisor.dev/gvisor/pkg/tcpip/header"
 )
 
 func dissectIPv4(packet []byte) ([]Property, Dissector, []byte) {
@@ -98,4 +99,30 @@ func dissectICMPv6(packet []byte) ([]Property, Dissector, []byte) {
 	props = append(props, Property{"icmpv6/type", msgType.String()})
 	props = append(props, Property{"icmpv6/code", strconv.Itoa(message.Code)})
 	return props, nil, packet[ipv6.HeaderLen:]
+}
+
+func dissectUDP(packet []byte) ([]Property, Dissector, []byte) {
+	if len(packet) < tcpip.UDPMinimumSize {
+		fmt.Fprintf(os.Stderr, "unable to parse UDP message: packet is too short\n")
+		return nil, nil, packet
+	}
+	udpPacket := tcpip.UDP(packet)
+
+	var props []Property
+	props = append(props, Property{"udp/sport", strconv.Itoa(int(udpPacket.SourcePort()))})
+	props = append(props, Property{"udp/dport", strconv.Itoa(int(udpPacket.DestinationPort()))})
+	return props, nil, udpPacket.Payload()
+}
+
+func dissectTCP(packet []byte) ([]Property, Dissector, []byte) {
+	if len(packet) < tcpip.TCPMinimumSize {
+		fmt.Fprintf(os.Stderr, "unable to parse TCP message: packet is too short\n")
+		return nil, nil, packet
+	}
+	tcpPacket := tcpip.TCP(packet)
+
+	var props []Property
+	props = append(props, Property{"tcp/sport", strconv.Itoa(int(tcpPacket.SourcePort()))})
+	props = append(props, Property{"tcp/dport", strconv.Itoa(int(tcpPacket.DestinationPort()))})
+	return props, nil, tcpPacket.Payload()
 }

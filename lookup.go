@@ -445,11 +445,11 @@ func lookupIPProto(ipproto int) (string, Dissector) {
 	case unix.IPPROTO_SCTP:
 		return "SCTP", nil
 	case unix.IPPROTO_TCP:
-		return "TCP", nil
+		return "TCP", dissectTCP
 	case unix.IPPROTO_TP:
 		return "TP", nil
 	case unix.IPPROTO_UDP:
-		return "UDP", nil
+		return "UDP", dissectUDP
 	case unix.IPPROTO_UDPLITE:
 		return "UDPLITE", nil
 	}
