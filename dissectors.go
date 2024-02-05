@@ -52,6 +52,7 @@ func dissectIPv4(packet []byte) ([]Property, Dissector, []byte) {
 	props = append(props, Property{"ipv4/length", strconv.Itoa(header.TotalLen)})
 	props = append(props, Property{"ipv4/src", header.Src.String()})
 	props = append(props, Property{"ipv4/dst", header.Dst.String()})
+	props = append(props, Property{"ipv4/ttl", strconv.Itoa(header.TTL)})
 	proto, next := lookupIPProto(header.Protocol)
 	props = append(props, Property{"ipv4/protocol", proto})
 	return props, next, packet[ipv4.HeaderLen:]
@@ -68,6 +69,7 @@ func dissectIPv6(packet []byte) ([]Property, Dissector, []byte) {
 	props = append(props, Property{"ipv6/payload-length", strconv.Itoa(header.PayloadLen)})
 	props = append(props, Property{"ipv6/src", header.Src.String()})
 	props = append(props, Property{"ipv6/dst", header.Dst.String()})
+	props = append(props, Property{"ipv6/hop-limit", strconv.Itoa(header.HopLimit)})
 	proto, next := lookupIPProto(header.NextHeader)
 	props = append(props, Property{"ipv6/next-header", proto})
 	return props, next, packet[ipv6.HeaderLen:]
